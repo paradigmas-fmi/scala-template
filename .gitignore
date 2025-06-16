@@ -1,0 +1,25 @@
+# Archivos compilados
+target/
+*.class
+
+# Archivos de IDE
+.idea/
+.vscode/
+*.iml
+.project
+.classpath
+.settings/
+.bsp/
+
+# Archivos del sistema
+.DS_Store
+Thumbs.db
+
+# Archivos de sbt
+project/project/
+project/target/
+
+# Archivos temporales
+*.log
+*.tmp
+*~
