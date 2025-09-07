@@ -1,6 +1,6 @@
-# Ejecutor de Pruebas para Proyecto Scala
+# Ejecutor de Pruebas para Proyecto Scala con Archivos Prolog
 
-Este proyecto incluye un script para ejecutar pruebas automatizadas de un proyecto Scala.
+Este proyecto incluye un script para ejecutar pruebas automatizadas de un proyecto Scala que procesa archivos de conocimiento Prolog (.pl) y consultas línea por línea.
 
 ## Requisitos
 
@@ -17,13 +17,17 @@ Este proyecto incluye un script para ejecutar pruebas automatizadas de un proyec
 │       └── scala/
 │           └── Main.scala    # Código fuente principal
 ├── ejemplos/
-│   ├── inputs/              # Archivos de entrada para las pruebas
-│   │   ├── test1.txt
-│   │   ├── test2.txt
+│   ├── programas/           # Archivos de conocimiento Prolog (.pl)
+│   │   ├── programa1.pl
+│   │   ├── programa2.pl
 │   │   └── ...
-│   └── outputs/             # Archivos de salida esperados
-│       ├── test1.txt
-│       ├── test2.txt
+│   ├── input/              # Archivos de entrada con consultas
+│   │   ├── programa1
+│   │   ├── programa2
+│   │   └── ...
+│   └── output/              # Archivos de salida esperados
+│       ├── programa1
+│       ├── programa2
 │       └── ...
 ├── test_runner.sh          # Script para ejecutar las pruebas
 ```
@@ -36,9 +40,10 @@ Este proyecto incluye un script para ejecutar pruebas automatizadas de un proyec
    ```
 
 2. Coloca tus archivos de prueba:
-   - Los archivos de entrada van en `ejemplos/inputs/`
-   - Los archivos de salida esperados van en `ejemplos/outputs/`
-   - Los nombres de los archivos deben coincidir (ej: `test1.txt` en inputs y outputs)
+   - Los archivos de conocimiento Prolog van en `ejemplos/programas/*.pl`
+   - Los archivos de entrada con consultas van en `ejemplos/inputs/*`
+   - Los archivos de salida esperados van en `ejemplos/outputs/*`
+   - Los nombres deben coincidir (ej: `programa1.pl`, `programa1` (en inputs), `programa1` (en outputs))
 
 3. Dale permisos de ejecución al script:
    ```bash
@@ -52,20 +57,37 @@ Este proyecto incluye un script para ejecutar pruebas automatizadas de un proyec
 
 ## Formato de los Archivos de Prueba
 
+### Archivos de Conocimiento Prolog
+- Ubicación: `ejemplos/programas/*.pl`
+- Formato: Sintaxis Prolog estándar
+- Ejemplo:
+  ```prolog
+  % Hechos
+  padre(juan, maria).
+  padre(juan, pedro).
+  
+  % Reglas
+  abuelo(X, Y) :- padre(X, Z), padre(Z, Y).
+  ```
+
 ### Archivos de Entrada
-- Ubicación: `ejemplos/inputs/*.txt`
-- Formato: Una línea por prueba
+- Ubicación: `ejemplos/inputs/*`
+- Formato: Una consulta Prolog por línea
 - Ejemplo:
   ```
-  Toyota 2021
+  padre(juan, maria)
+  padre(juan, pedro)
+  abuelo(juan, ana)
   ```
 
 ### Archivos de Salida
-- Ubicación: `ejemplos/outputs/*.txt`
-- Formato: Una línea con la salida esperada
+- Ubicación: `ejemplos/outputs/*`
+- Formato: Una respuesta por línea correspondiente a cada consulta
 - Ejemplo:
   ```
-  Car: Toyota - 2021
+  true
+  true
+  true
   ```
 
 ## Salida del Script
@@ -79,15 +101,19 @@ Ejemplo de salida:
 ```
 🔨 Compilando...
 
-🚗 Ejecutando pruebas...
+Ejecutando pruebas...
 --------------------------
-✅ test1.txt: 'Toyota 2021' → 'Car: Toyota - 2021'
+✅ programa1: Prueba exitosa
 --------------------------
-❌ test2.txt: 'Ford 1999'
-   Esperado: 'Car: Ford - 1999'
-   Recibido: 'Car: unknown - unknown'
+✅ programa2: Prueba exitosa
 --------------------------
 
-✔ Exitosos: 1
-✘ Fallidos: 1
+✔ Exitosos: 2
+```
+
+### Modos de Uso
+
+**Con archivo de entrada:**
+```bash
+sbt "run programa.pl input.txt"
 ```
