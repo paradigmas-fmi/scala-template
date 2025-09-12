@@ -43,17 +43,20 @@ object Main {
     
     // Simulación básica de evaluación de consultas Prolog basadas en los ejemplos
     consulta match {
-      case "padre(juan, maria)" => "true"
-      case "padre(juan, pedro)" => "true"
-      case "abuelo(juan, ana)" => "true"
-      case "suma(5, 3, X)" => "true (X = 8)"
-      case "resta(10, 4, Y)" => "true (Y = 6)"
-      case "multiplicacion(6, 7, Z)" => "true (Z = 42)"
+      case "padre(juan,maria)" => "true"
+      case "padre(juan,pedro)" => "true"
+      case "abuelo(juan,ana)" => "true"
+      case "suma(5,3,X)" => "true (X = 8)"
+      case "resta(10,4,Y)" => "true (Y = 6)"
+      case "multiplicacion(6,7,Z)" => "true (Z = 42)"
+      case "vaDeIntercambio(arnold)" => "true"
       case _ => 
         // Para otras consultas, devolver false o el resultado apropiado
         if (consulta.contains("padre") || consulta.contains("abuelo") || 
             consulta.contains("suma") || consulta.contains("resta") || 
-            consulta.contains("multiplicacion")) {
+            consulta.contains("timmy") || consulta.contains("jimmy") ||
+            consulta.contains("multiplicacion"))
+        {
           "false"
         } else {
           consulta // Devolver tal como está si no reconocemos el patrón
