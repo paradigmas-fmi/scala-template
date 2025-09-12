@@ -30,8 +30,8 @@ for programa in ejemplos/programas/*.pl; do
     fi
     
     nombre_programa=$(basename "$programa" .pl)
-    archivo_input="ejemplos/inputs/${nombre_programa}"
-    archivo_output="ejemplos/outputs/${nombre_programa}"
+    archivo_input="ejemplos/inputs/${nombre_programa}.txt"
+    archivo_output="ejemplos/outputs/${nombre_programa}.res"
     
     # Verificar que existen los archivos de entrada y salida
     if [ ! -f "$archivo_input" ] || [ ! -f "$archivo_output" ]; then
