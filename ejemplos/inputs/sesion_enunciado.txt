@@ -1,0 +1,6 @@
+MI_EJEMPLO=(λx.(λy.(y)) (λx.(x x) λx.(x x)))
+calc_vars !MI_EJEMPLO
+reduce cbn !MI_EJEMPLO
+IDZ=λz.(z)
+calc_vars (λf.(f b)) (λx.(!IDZ) z) a
+reduce cbv debug (λf.(f b)) (λx.(!IDZ) z) a

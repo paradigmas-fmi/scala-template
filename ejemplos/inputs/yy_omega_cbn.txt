@@ -1,0 +1,1 @@
+reduce cbn λy.(λx.(y y)) a (λx.(x x) λx.(x x))
