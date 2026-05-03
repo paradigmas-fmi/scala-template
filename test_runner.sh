@@ -18,7 +18,9 @@ verificar_requisitos
 export SBT_OPTS="-Dsbt.color=false${SBT_OPTS:+ $SBT_OPTS}"
 
 echo "${MARTILLO} Compilando..."
-sbt -batch compile > /dev/null 2>&1 || { echo -e "${ROJO}${CRUZ} Error al compilar${NC}"; exit 1; }
+# Sin --batch: en algunos entornos (p. ej. Windows/WSL) --batch suele combinarse mal con
+# `run < archivo` + fork + stdin; `sbt compile` / `sbt run` ya son no interactivos al pasar comandos.
+sbt compile > /dev/null 2>&1 || { echo -e "${ROJO}${CRUZ} Error al compilar${NC}"; exit 1; }
 
 echo -e "\n$ Ejecutando pruebas..."
 echo "--------------------------"
@@ -47,8 +49,8 @@ while IFS= read -r archivo_input; do
         continue
     fi
 
-    # Intérprete MonaLambda: stdin desde el .txt, sin argumentos (-Dsbt.color=false vía SBT_OPTS)
-    sbt -batch 'run' < "$archivo_input" 2>&1 \
+    # Intérprete MonaLambda: stdin desde el .txt (--batch omitido por compatibilidad de stdin; ver README)
+    sbt 'run' < "$archivo_input" 2>&1 \
         | grep -v '^\[info\]' \
         | grep -v '^\[success\]' \
         | grep -v '^\[warn\]' \
