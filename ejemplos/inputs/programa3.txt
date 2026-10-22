@@ -1,0 +1,4 @@
+vaDeIntercambio(jimmy)
+vaDeIntercambio(timmy)
+vaDeIntercambio(arnold)
+promedioAlto(X)

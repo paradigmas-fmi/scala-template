@@ -1,0 +1,8 @@
+suma(5,3,X)
+resta(10,4,Y)
+multiplicacion(6,7,Z)
+sumaYDuplica(2,3,R)
+distintos(3,3)
+distintos(3,4)
+diferenciaPositiva(7,2)
+diferenciaPositiva(2,7)

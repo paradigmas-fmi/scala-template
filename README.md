@@ -1,6 +1,6 @@
-# Plantilla de pruebas — TP1 MonaLambda (Scala 3)
+# Plantilla de pruebas — TP2 Funco-Logi (Scala 3)
 
-Repositorio mínimo para el intérprete de cálculo lambda del TP1. El programa debe leer **líneas por la entrada estándar** (definiciones `NOMBRE=expr`, `calc_vars`, `reduce cbn|cbv`, etiquetas `!NOMBRE`, etc.), según el enunciado.
+Repositorio mínimo para el motor lógico inspirado en Prolog del TP2. El programa recibe **dos argumentos**: el archivo de la base de conocimientos (`.pl`) y el archivo de consultas (una consulta por línea), e imprime por salida estándar una respuesta por cada consulta.
 
 ## Requisitos
 
@@ -12,78 +12,45 @@ Repositorio mínimo para el intérprete de cálculo lambda del TP1. El programa 
 
 ```
 .
-├── src/main/scala/Main.scala   # Punto de entrada (stdin)
+├── src/main/scala/Main.scala   # Punto de entrada (recibe los dos paths como argumentos)
 ├── ejemplos/
-│   ├── inputs/                 # Casos de prueba: una línea = una orden al intérprete
-│   └── outputs/                # Salida esperada en stdout (.res con el mismo nombre base)
+│   ├── programas/              # Bases de conocimientos (<caso>.pl)
+│   ├── inputs/                 # Consultas, una por línea (<caso>.txt)
+│   └── outputs/                # Respuestas esperadas, una por línea (<caso>.res)
 ├── test_runner.sh
 ├── build.sbt
 └── README.md
 ```
 
-## stdin y sbt (`fork` + `connectInput`)
+Los nombres deben coincidir: `programa1.pl` ↔ `programa1.txt` ↔ `programa1.res`.
 
-El proyecto declara en `build.sbt`:
-
-```scala
-Compile / run / fork := true
-Compile / run / connectInput := true
-```
-
-**Por qué:** si `fork` es `false` (valor histórico de sbt), `run` ejecuta `Main` **dentro de la JVM de sbt**. En ese modo la entrada estándar **no tiene por qué** ser la del proceso que invocaste (en la práctica viene vacía o se comporta mal con `run < archivo`, WSL y algunos IDEs).
-
-Con **`fork := true`** el programa corre en otro proceso Java y **`connectInput := true`** le enchufa ese mismo stdin que recibe sbt desde la terminal o la redirección `< archivo`.
-
-`Source.stdin.getLines()` y `StdIn.readLine()` son válidos cuando está bien conectado el stdin; cualquiera de los dos debería servir junto con la configuración anterior.
-
-## Cómo correr el intérprete
+## Cómo correr el programa
 
 Desde la **raíz del repo**:
 
 ```bash
 sbt compile
-sbt run < mi_entrada.txt
+sbt "run <base_de_conocimientos.pl> <consultas.txt>"
 ```
 
 Ejemplo contra un caso de ejemplo:
 
 ```bash
-sbt run < ejemplos/inputs/omega_cbn.txt
+sbt "run ejemplos/programas/programa1.pl ejemplos/inputs/programa1.txt"
 ```
 
-En una sola invocación (abre sbt, ejecuta `compile` y termina):
+La salida se puede redirigir a un archivo con el operador de la shell:
 
 ```bash
-sbt "compile; run" < mi_entrada.txt
+sbt "run ejemplos/programas/programa1.pl ejemplos/inputs/programa1.txt" > salida.res
 ```
-
-### ¿Hace falta `--batch`?
-
-**No es obligatorio** para los comandos que usamos acá.
-
-Si escribís `sbt compile` o `sbt run` desde la terminal **con el comando después de `sbt`**, ese proceso ejecuta esa tarea y **sale**, sin quedar en modo interactivo. El flag `--batch` (“disable interactive mode” en `sbt --help`) suele usarlo la gente en scripts **muy genéricos** o versiones viejas del launcher.
-
-En **Windows/WSL/Git Bash** algunos equipos reportan que **`sbt --batch run < archivo`** (o `-batch`) no les entrega bien el stdin junto con `fork` + redirección, mientras que **`sbt run < archivo`** sí. Por eso el script `./test_runner.sh` **ya no usa** `--batch`. Si en tu máquina funciona igual, podés usarlo opcionalmente:
-
-```bash
-sbt --batch run < ejemplos/inputs/omega_cbn.txt
-```
-
-Si no anda el `run` con `--batch`, usá la forma sin `--batch` (como el script de la cátedra).
 
 ## IntelliJ / Cursor / otros IDEs
 
 - **Pruebas automatizadas:** ejecutá `./test_runner.sh` desde una **terminal** del IDE en la carpeta raíz del proyecto.
-- **Ejecutar `Main` con archivo de entrada:** el botón “Run” típico **no** redirige un `.txt` a stdin salvo que lo configures en la corrida.
+- **Ejecutar `Main` desde el IDE:** en **IntelliJ IDEA** con plugin Scala, entrá a *Run → Edit Configurations…* → tu configuración de `Main`, y completá *Program arguments* con los dos paths (por ejemplo `ejemplos/programas/programa1.pl ejemplos/inputs/programa1.txt`).
 
-En **IntelliJ IDEA** con plugin Scala:
-
-1. *Run → Edit Configurations…* → tu configuración de `Main`.
-2. *Modify options → Redirect input from* y elegís el archivo `.txt`.
-
-Si no aparece esa opción, usá una terminal dentro del IDE y el comando `sbt run < ejemplos/inputs/omega_cbn.txt`.
-
-Asegurate de tener **Working directory** = raíz del proyecto (donde está `build.sbt`).
+Asegurate de tener **Working directory** = raíz del proyecto (donde está `build.sbt`), ya que los paths son relativos a ella.
 
 ## Cómo correr las pruebas de la cátedra
 
@@ -92,17 +59,57 @@ chmod +x test_runner.sh
 ./test_runner.sh
 ```
 
-El script exporta `SBT_OPTS=-Dsbt.color=false` (para logs sin ANSI), compila con `sbt compile`, ejecuta `sbt run` redirigiendo cada `ejemplos/inputs/<caso>.txt` a stdin (**sin** `--batch`, por compatibilidad de stdin en algunos entornos) y compara la salida filtrada (líneas `[info]` / `[success]` de sbt, etc.) con `ejemplos/outputs/<caso>.res`.
+El script compila con `sbt compile`, ejecuta `sbt "run ejemplos/programas/<caso>.pl ejemplos/inputs/<caso>.txt"` para cada caso y compara la salida (filtrando los logs de sbt) con `ejemplos/outputs/<caso>.res`.
 
 ## Formato de los archivos de ejemplo
 
-- **`ejemplos/inputs/<caso>.txt`**: texto UTF-8, una instrucción por línea (sin prompts).
-- **`ejemplos/outputs/<caso>.res`**: lo que debe imprimirse a **stdout**, línea a línea, en el mismo orden que las respuestas a cada instrucción.
+### Base de conocimientos (`ejemplos/programas/<caso>.pl`)
 
-Los nombres deben coincidir: `foo.txt` ↔ `foo.res`.
+Sintaxis simplificada definida en el enunciado:
+
+- Todas las sentencias terminan con un punto (`.`), sin espacios dentro de ellas.
+- Las líneas que comienzan con `%%` son comentarios.
+- Las variables comienzan con mayúscula; hechos, reglas y átomos, con minúscula.
+- Los predicados de aridad 0 se escriben con paréntesis vacíos: `es_mamifero().`
+- Las reglas se definen en una única línea: `cabeza(X,Y):-prop1,prop2,...,propK.`
+- Operaciones built-in (`add`, `sub`, `mult`, `eq`, `gt`, `eqStr`, `len`, `not`), que pueden anidarse.
+
+```prolog
+%% Hechos
+padre(juan,maria).
+padre(juan,pedro).
+padre(pedro,ana).
+
+%% Reglas
+abuelo(X,Y):-padre(X,Z),padre(Z,Y).
+sumaYDuplica(X,Y,Z):-Z=mult(add(X,Y),2).
+```
+
+### Consultas (`ejemplos/inputs/<caso>.txt`)
+
+Una consulta por línea, sin `?-` ni punto final:
+
+```
+abuelo(juan,ana)
+padre(juan,X)
+padre(P,H)
+```
+
+### Respuestas esperadas (`ejemplos/outputs/<caso>.res`)
+
+Una respuesta por línea, en el mismo orden que las consultas:
+
+- `true` o `false` si la consulta no tiene variables libres (o no tiene solución).
+- `true [...]` con todas las soluciones, en el orden en que se encuentran, si la consulta tiene variables libres. Dentro de cada solución las variables se separan con `;`.
+
+```
+true
+true [(X=maria),(X=pedro)]
+true [(P=juan;H=maria),(P=juan;H=pedro),(P=pedro;H=ana)]
+```
 
 ## Salida del script
 
-- Pruebas exitosas o fallidas por caso
+- Pruebas exitosas o fallidas por caso (con el resultado esperado y el recibido)
 - Resumen de cantidad de exitosos y fallidos
 - Código de salida distinto de cero si hubo fallos
