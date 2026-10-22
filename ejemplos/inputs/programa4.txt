@@ -1,0 +1,4 @@
+es_cebra()
+es_ungulado()
+rumia()
+tiene_alas()

@@ -15,64 +15,52 @@ verificar_requisitos() {
 
 verificar_requisitos
 
+# Logs de sbt sin colores ANSI, para poder filtrarlos de la salida del programa
 export SBT_OPTS="-Dsbt.color=false${SBT_OPTS:+ $SBT_OPTS}"
 
 echo "${MARTILLO} Compilando..."
-# Sin --batch: en algunos entornos (p. ej. Windows/WSL) --batch suele combinarse mal con
-# `run < archivo` + fork + stdin; `sbt compile` / `sbt run` ya son no interactivos al pasar comandos.
 sbt compile > /dev/null 2>&1 || { echo -e "${ROJO}${CRUZ} Error al compilar${NC}"; exit 1; }
 
 echo -e "\n$ Ejecutando pruebas..."
 echo "--------------------------"
 
 exitosos=0 fallidos=0
-archivo_actual=$(mktemp)
-trap 'rm -f "$archivo_actual"' EXIT
 
-shopt -s nullglob
-casos=(ejemplos/inputs/*.txt)
-
-if [ ${#casos[@]} -eq 0 ]; then
-    echo -e "${ROJO}${CRUZ} No hay archivos en ejemplos/inputs/*.txt${NC}"
-    exit 1
-fi
-
-while IFS= read -r archivo_input; do
-    [ -n "$archivo_input" ] || continue
-    nombre_caso=$(basename "$archivo_input" .txt)
-    archivo_output="ejemplos/outputs/${nombre_caso}.res"
-
-    if [ ! -f "$archivo_output" ]; then
-        echo -e "${ROJO}${CRUZ} $nombre_caso: Falta ejemplos/outputs/${nombre_caso}.res${NC}"
-        ((fallidos++))
-        echo "--------------------------"
+# Buscar todos los programas en ejemplos/programas/
+for programa in ejemplos/programas/*.pl; do
+    if [ ! -f "$programa" ]; then
         continue
     fi
-
-    # Intérprete MonaLambda: stdin desde el .txt (--batch omitido por compatibilidad de stdin; ver README)
-    sbt 'run' < "$archivo_input" 2>&1 \
-        | grep -v '^\[info\]' \
-        | grep -v '^\[success\]' \
-        | grep -v '^\[warn\]' \
-        | grep -v '^\[error\]' \
-        | grep -v '^$' \
-        | grep -v 'Total time' \
-        | grep -v 'WARNING' \
-        > "$archivo_actual"
-
-    if cmp -s "$archivo_output" "$archivo_actual"; then
-        echo -e "${VERDE}${CHECK} $nombre_caso: Prueba exitosa${NC}"
+    
+    nombre_programa=$(basename "$programa" .pl)
+    archivo_input="ejemplos/inputs/${nombre_programa}.txt"
+    archivo_output="ejemplos/outputs/${nombre_programa}.res"
+    
+    # Verificar que existen los archivos de entrada y salida
+    if [ ! -f "$archivo_input" ] || [ ! -f "$archivo_output" ]; then
+        echo -e "${ROJO}${CRUZ} $nombre_programa: Faltan archivos input/output${NC}"
+        ((fallidos++))
+        continue
+    fi
+    
+    # Ejecutar el programa con el archivo de conocimiento y archivo de input como parámetros
+    salida=$(sbt "run $programa $archivo_input" 2>/dev/null | grep -v "^\[" | grep -v "^$" | grep -v "Total time" | grep -v "WARNING")
+    esperado=$(cat "$archivo_output")
+    
+    # Comparar línea por línea
+    if [[ "$salida" == "$esperado" ]]; then
+        echo -e "${VERDE}${CHECK} $nombre_programa: Prueba exitosa${NC}"
         ((exitosos++))
     else
-        echo -e "${ROJO}${CRUZ} $nombre_caso: Prueba fallida${NC}"
+        echo -e "${ROJO}${CRUZ} $nombre_programa: Prueba fallida${NC}"
         echo -e "${ROJO}   Esperado:${NC}"
-        sed 's/^/     /' "$archivo_output"
+        echo "$esperado" | sed 's/^/     /'
         echo -e "${ROJO}   Recibido:${NC}"
-        sed 's/^/     /' "$archivo_actual"
+        echo "$salida" | sed 's/^/     /'
         ((fallidos++))
     fi
     echo "--------------------------"
-done < <(printf '%s\n' "${casos[@]}" | sort)
+done
 
 echo -e "\n${VERDE}✔ Exitosos: $exitosos${NC}"
 [ $fallidos -gt 0 ] && echo -e "${ROJO}✘ Fallidos: $fallidos${NC}"

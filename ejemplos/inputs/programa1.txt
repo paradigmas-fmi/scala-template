@@ -1,0 +1,5 @@
+padre(juan,maria)
+padre(juan,pedro)
+abuelo(juan,ana)
+padre(juan,X)
+padre(P,H)
